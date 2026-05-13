@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plant-disease-ai
+  labels:
+    app: plant-disease-ai
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: plant-disease-ai
+  template:
+    metadata:
+      labels:
+        app: plant-disease-ai
+    spec:
+      containers:
+      - name: ai-platform
+        image: plant-disease-ai:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        readinessProbe:
+          httpGet:
+            path: /api/v1/openapi.json
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /api/v1/openapi.json
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 20

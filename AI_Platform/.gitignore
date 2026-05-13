@@ -1,0 +1,39 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+
+# Node / React
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# macOS
+.DS_Store
+
+# Large Model Files (Requires Git LFS)
+*.pt
+*.pth
+*.h5
+*.onnx
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
