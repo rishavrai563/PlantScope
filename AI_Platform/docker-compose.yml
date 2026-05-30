@@ -5,12 +5,12 @@ services:
     build: .
     container_name: plant_disease_ai
     ports:
-      - "8000:8000"
+      - "7860:7860"
     restart: always
     environment:
       - WORKERS_PER_CORE=1
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/openapi.json"]
+      test: ["CMD", "curl", "-f", "http://localhost:7860/api/v1/openapi.json"]
       interval: 30s
       timeout: 10s
       retries: 3

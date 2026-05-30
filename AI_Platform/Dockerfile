@@ -31,6 +31,6 @@ ENV MODEL_PATH=/app/plant_disease_model_1_latest.pt
 ENV CSV_PATH=/app/disease_info.csv
 ENV PYTHONPATH=/app
 
-EXPOSE 8000
+EXPOSE 7860
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7860"]
