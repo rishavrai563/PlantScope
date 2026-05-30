@@ -38,7 +38,15 @@ The model was trained on the world-renowned **PlantVillage Dataset**, a gold sta
 
 ## 🚀 Getting Started
 
-### 1. Run with Docker (Recommended)
+### ☁️ Cloud Deployment (Vercel & Hugging Face)
+The platform is optimized for a split-deployment architecture for maximum performance and cost-efficiency:
+1. **Frontend (Vercel)**: Deploy the `AI_Platform/frontend` directory directly to Vercel. Vercel automatically detects the Vite framework and builds the optimized React SPA.
+2. **Backend (Hugging Face Spaces)**: Create a Docker Space on Hugging Face and push the `AI_Platform` directory. Hugging Face provides 16GB of free RAM, perfect for loading the 210MB PyTorch model.
+3. **Connectivity**: Update `AI_Platform/frontend/vercel.json` with your Hugging Face Space URL to automatically proxy API requests and avoid CORS.
+
+---
+
+### 1. Run Locally with Docker (Recommended)
 The easiest way to launch the platform is using Docker Compose:
 ```bash
 cd AI_Platform
