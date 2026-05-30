@@ -1,3 +1,5 @@
+import ray
+from ray import serve
 import torch
 import torchvision.transforms.functional as TF
 from PIL import Image
@@ -10,6 +12,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+@serve.deployment(num_replicas=1, ray_actor_options={"num_cpus": 1})
 class InferenceService:
     def __init__(self):
         self.model = CNN(39)
@@ -57,5 +60,3 @@ class InferenceService:
         except Exception as e:
             logger.error(f"Error during prediction: {e}")
             raise e
-
-inference_service = InferenceService()

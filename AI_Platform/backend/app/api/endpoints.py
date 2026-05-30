@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
-from app.services.inference import inference_service
+from ray import serve
 import logging
 
 router = APIRouter()
@@ -12,7 +12,8 @@ async def predict_disease(file: UploadFile = File(...)):
     
     try:
         contents = await file.read()
-        result = inference_service.predict(contents)
+        handle = serve.get_app_handle("inference_worker")
+        result = await handle.predict.remote(contents)
         return {"status": "success", "data": result}
     except Exception as e:
         logger.error(f"Prediction failed: {e}")

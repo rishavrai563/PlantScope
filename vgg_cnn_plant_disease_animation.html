@@ -1,0 +1,303 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+#root { padding: 12px 0; }
+.stage-nav { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--color-border-secondary); cursor: pointer; transition: background .3s; }
+.dot.active { background: #5CA8FF; }
+.canvas-wrap { position: relative; width: 100%; overflow: hidden; border-radius: var(--border-radius-lg); border: 0.5px solid var(--color-border-tertiary); background: var(--color-background-secondary); }
+.stage-label { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 8px; min-height: 18px; }
+.btn-row { display: flex; gap: 10px; margin-top: 12px; align-items: center; }
+button { font-size: 13px; padding: 6px 16px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-primary); cursor: pointer; }
+button:hover { background: var(--color-background-secondary); }
+button:disabled { opacity: .4; cursor: not-allowed; }
+.btn-play { background: var(--color-background-info); color: var(--color-text-info); border-color: var(--color-border-info); }
+.info-card { margin-top: 10px; padding: 10px 14px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-tertiary); background: var(--color-background-primary); font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; min-height: 56px; }
+.info-card strong { color: var(--color-text-primary); font-weight: 500; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.55} }
+@keyframes slideRight { from{transform:translateX(-18px);opacity:0} to{transform:translateX(0);opacity:1} }
+@keyframes pop { 0%{transform:scale(.85);opacity:0} 60%{transform:scale(1.08)} 100%{transform:scale(1);opacity:1} }
+.pulse { animation: pulse 1.2s ease-in-out infinite; }
+.slidein { animation: slideRight .45s ease forwards; }
+.pop { animation: pop .4s ease forwards; }
+</style>
+
+<div id="root">
+  <div class="stage-nav" id="dots"></div>
+  <div class="stage-label" id="stage-label"></div>
+  <div class="canvas-wrap">
+    <svg id="canvas" width="100%" viewBox="0 0 656 260" role="img">
+      <title>VGG-style CNN for plant disease classification – animated walkthrough</title>
+      <desc>Step-by-step animation showing how an input image flows through convolutional blocks to produce a plant disease classification.</desc>
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+      <!-- permanent skeleton (faint) -->
+      <!-- Input -->
+      <rect id="sk-input" x="8" y="90" width="68" height="80" rx="6" fill="none" stroke="var(--color-border-tertiary)" stroke-width="0.5"/>
+      <!-- Block 1 -->
+      <rect id="sk-b1" x="108" y="60" width="80" height="140" rx="6" fill="none" stroke="var(--color-border-tertiary)" stroke-width="0.5"/>
+      <!-- Block 2 -->
+      <rect id="sk-b2" x="216" y="75" width="80" height="110" rx="6" fill="none" stroke="var(--color-border-tertiary)" stroke-width="0.5"/>
+      <!-- Block 3 -->
+      <rect id="sk-b3" x="320" y="90" width="80" height="80" rx="6" fill="none" stroke="var(--color-border-tertiary)" stroke-width="0.5"/>
+      <!-- Block 4 -->
+      <rect id="sk-b4" x="424" y="100" width="80" height="60" rx="6" fill="none" stroke="var(--color-border-tertiary)" stroke-width="0.5"/>
+      <!-- FC -->
+      <rect id="sk-fc" x="530" y="70" width="118" height="120" rx="6" fill="none" stroke="var(--color-border-tertiary)" stroke-width="0.5"/>
+
+      <!-- labels (always visible) -->
+      <text x="42" y="186" text-anchor="middle" font-size="11" fill="var(--color-text-tertiary)">224×224×3</text>
+      <text x="148" y="214" text-anchor="middle" font-size="11" fill="var(--color-text-tertiary)">112×112×32</text>
+      <text x="256" y="196" text-anchor="middle" font-size="11" fill="var(--color-text-tertiary)">56×56×64</text>
+      <text x="360" y="182" text-anchor="middle" font-size="11" fill="var(--color-text-tertiary)">28×28×128</text>
+      <text x="464" y="172" text-anchor="middle" font-size="11" fill="var(--color-text-tertiary)">14×14×256</text>
+
+      <!-- connectors (always visible, faint) -->
+      <line x1="76" y1="130" x2="106" y2="130" stroke="var(--color-border-tertiary)" stroke-width="0.5" marker-end="url(#arr)"/>
+      <line x1="188" y1="130" x2="214" y2="130" stroke="var(--color-border-tertiary)" stroke-width="0.5" marker-end="url(#arr)"/>
+      <line x1="296" y1="130" x2="318" y2="130" stroke="var(--color-border-tertiary)" stroke-width="0.5" marker-end="url(#arr)"/>
+      <line x1="400" y1="130" x2="422" y2="130" stroke="var(--color-border-tertiary)" stroke-width="0.5" marker-end="url(#arr)"/>
+      <line x1="504" y1="130" x2="528" y2="130" stroke="var(--color-border-tertiary)" stroke-width="0.5" marker-end="url(#arr)"/>
+
+      <!-- animated highlight group -->
+      <g id="hl"></g>
+    </svg>
+  </div>
+  <div class="info-card" id="info-card"></div>
+  <div class="btn-row">
+    <button id="btn-prev" onclick="nav(-1)">← Prev</button>
+    <button id="btn-play" class="btn-play" onclick="togglePlay()">▶ Auto-play</button>
+    <button id="btn-next" onclick="nav(1)">Next →</button>
+    <span id="step-counter" style="margin-left:auto;font-size:12px;color:var(--color-text-tertiary)"></span>
+  </div>
+</div>
+
+<script>
+const stages = [
+  {
+    label: "Input — RGB leaf image (224 × 224 × 3)",
+    info: "<strong>Input image.</strong> A 224×224 pixel RGB photo of a plant leaf is fed into the network. The 3 channels carry red, green, and blue intensity values for every pixel.",
+    draw(g) {
+      rect(g, 8, 90, 68, 80, "#3B8BD4", 0.15, "#3B8BD4");
+      // leaf grid impression
+      for (let r=0;r<4;r++) for (let c=0;c<4;c++) {
+        const el = svgEl('rect');
+        attrs(el,{x:12+c*15,y:94+r*17,width:13,height:14,rx:2,
+          fill:r+c<4?'#3BA87A':'#D4532A',opacity:0.7+(r+c)*0.03});
+        g.appendChild(el);
+      }
+      label(g,42,85,"Input",'#3B8BD4',12,500);
+      arrowH(g,76,130,106,130,"#3B8BD4");
+    }
+  },
+  {
+    label: "Block 1 — Conv2D × 2 + BatchNorm + ReLU + MaxPool (→ 112×112×32)",
+    info: "<strong>Block 1</strong> applies two 3×3 Conv2D layers with 32 filters each, followed by BatchNorm and ReLU activation. MaxPool2d (2×2, stride 2) halves the spatial size from 224→112. The network starts learning simple edges and colors.",
+    draw(g) {
+      rect(g, 8, 90, 68, 80, "#3B8BD4", 0.08, "#3B8BD4");
+      arrowH(g,76,130,106,130,"#5CA8FF");
+      blockFull(g, 108, 60, 80, 140, "#5CA8FF", ["Conv2D×2","ReLU","BNorm","MaxPool"], "Block 1", "32 filters");
+      arrowH(g,188,130,214,130,"var(--color-border-tertiary)");
+      // feature map cube
+      cube(g, 120, 220, 58, 12, "#5CA8FF");
+    }
+  },
+  {
+    label: "Block 2 — Conv2D × 2 + BatchNorm + ReLU + MaxPool (→ 56×56×64)",
+    info: "<strong>Block 2</strong> doubles the filter count to 64 and halves spatial resolution again (112→56). The network now detects slightly more complex patterns like spots, textures, and simple shapes associated with disease lesions.",
+    draw(g) {
+      rect(g, 108, 60, 80, 140, "#5CA8FF", 0.06, "#5CA8FF");
+      arrowH(g,188,130,214,130,"#F0B429");
+      blockFull(g, 216, 75, 80, 110, "#F0B429", ["Conv2D×2","ReLU","BNorm","MaxPool"], "Block 2", "64 filters");
+      arrowH(g,296,130,318,130,"var(--color-border-tertiary)");
+      cube(g, 232, 198, 48, 10, "#F0B429");
+    }
+  },
+  {
+    label: "Block 3 — Conv2D × 2 + BatchNorm + ReLU + MaxPool (→ 28×28×128)",
+    info: "<strong>Block 3</strong> has 128 filters and produces 28×28 feature maps. The receptive field grows — each feature now summarises a larger area of the original image, capturing disease patches, ring patterns, and discoloration regions.",
+    draw(g) {
+      rect(g, 216, 75, 80, 110, "#F0B429", 0.06, "#F0B429");
+      arrowH(g,296,130,318,130,"#E25C5C");
+      blockFull(g, 320, 90, 80, 80, "#E25C5C", ["Conv2D×2","ReLU","BNorm","MaxPool"], "Block 3", "128 filters");
+      arrowH(g,400,130,422,130,"var(--color-border-tertiary)");
+      cube(g, 336, 182, 40, 9, "#E25C5C");
+    }
+  },
+  {
+    label: "Block 4 — Conv2D × 2 + BatchNorm + ReLU + MaxPool (→ 14×14×256)",
+    info: "<strong>Block 4</strong> pushes to 256 filters over tiny 14×14 maps. Each of the 256 channels is a high-level disease 'detector' — responding to complex combinations of lesion shape, color, and edge patterns learned from training data.",
+    draw(g) {
+      rect(g, 320, 90, 80, 80, "#E25C5C", 0.06, "#E25C5C");
+      arrowH(g,400,130,422,130,"#9B59B6");
+      blockFull(g, 424, 100, 80, 60, "#9B59B6", ["Conv2D×2","ReLU","BNorm","MaxPool"], "Block 4", "256 filters");
+      arrowH(g,504,130,528,130,"var(--color-border-tertiary)");
+      cube(g, 440, 172, 32, 8, "#9B59B6");
+    }
+  },
+  {
+    label: "Flatten — 14×14×256 = 50,176 values",
+    info: "<strong>Flatten</strong> reshapes the 3-D feature volume (14×14×256) into a single long vector of 50,176 numbers. This converts the spatial feature maps into a format the fully-connected layers can reason about globally.",
+    draw(g) {
+      rect(g, 424, 100, 80, 60, "#9B59B6", 0.06, "#9B59B6");
+      arrowH(g,504,130,528,130,"#1D9E75");
+      // flatten visualisation
+      const fc = svgEl('rect');
+      attrs(fc,{x:530,y:70,width:118,height:120,rx:6,fill:"#1D9E75",opacity:0.1,stroke:"#1D9E75",'stroke-width':1});
+      g.appendChild(fc);
+      for(let i=0;i<14;i++){
+        const b=svgEl('rect');
+        attrs(b,{x:536,y:74+i*8,width:106,height:6,rx:2,fill:"#1D9E75",opacity:0.45+(i*0.02)});
+        g.appendChild(b);
+      }
+      label(g,589,68,"Flatten",'#1D9E75',11,500);
+      label(g,589,200,"50,176 values",'#1D9E75',10,400);
+    }
+  },
+  {
+    label: "Dense + Dropout — 50,176 → 1024 with ReLU and Dropout (p=0.4)",
+    info: "<strong>First dense layer</strong> compresses 50,176 features into 1,024 neurons. ReLU keeps only positive activations. Dropout randomly zeroes 40% of neurons during training, preventing overfitting to particular disease examples.",
+    draw(g) {
+      rect(g, 424, 100, 80, 60, "#9B59B6", 0.06, "#9B59B6");
+      arrowH(g,504,130,528,130,"#1D9E75");
+      // dense weight fan (sample lines)
+      for(let i=0;i<10;i++){
+        const ln=svgEl('line');
+        const y1=74+i*12;
+        attrs(ln,{x1:530,y1,x2:644,y2:74+i*12,stroke:"#1D9E75",'stroke-width':0.8,opacity:i%3===0?0.15:0.35});
+        g.appendChild(ln);
+      }
+      fcBlock(g, 530, 70, 118, 120, "#1D9E75", "Dense", "→ 1024", ["Dropout 40%","ReLU"]);
+    }
+  },
+  {
+    label: "Output — 1024 → K classes (softmax)",
+    info: "<strong>Final dense layer</strong> maps 1,024 features to K output scores (one per disease class), then softmax converts scores to probabilities. The class with the highest probability is the predicted plant disease.",
+    draw(g) {
+      fcBlock(g, 530, 70, 118, 120, "#1D9E75", "Output", "K classes", ["Softmax"]);
+      // class pills
+      const cls = ["Healthy","Rust","Blight","Mosaic","Scorch"];
+      cls.forEach((c,i)=>{
+        const active = i===2;
+        const pill=svgEl('rect');
+        attrs(pill,{x:390+i*0,y:0,width:100,height:18,rx:9,fill:active?"#1D9E75":"var(--color-background-secondary)",opacity:1});
+        // draw vertically beside output
+        const px=538, py=76+i*23;
+        const pr=svgEl('rect');
+        attrs(pr,{x:px,y:py,width:102,height:18,rx:6,fill:active?"#1D9E75":"var(--color-background-secondary)",stroke:active?"#1D9E75":"var(--color-border-tertiary)",'stroke-width':0.5});
+        const pt=svgEl('text');
+        attrs(pt,{x:px+51,y:py+9,'text-anchor':'middle','dominant-baseline':'central','font-size':10,fill:active?"#fff":"var(--color-text-secondary)",'font-weight':active?500:400});
+        pt.textContent=c+(active?" ← predicted":"");
+        g.appendChild(pr); g.appendChild(pt);
+      });
+    }
+  }
+];
+
+let cur = 0, playing = false, timer = null;
+
+function svgEl(tag){ return document.createElementNS("http://www.w3.org/2000/svg",tag); }
+function attrs(el,obj){ Object.entries(obj).forEach(([k,v])=>el.setAttribute(k,v)); }
+
+function rect(g,x,y,w,h,stroke,opacity,fill){
+  const r=svgEl('rect');
+  attrs(r,{x,y,width:w,height:h,rx:6,fill:fill||'none',opacity:opacity||0.12,stroke,
+    'stroke-width':1.5});
+  g.appendChild(r);
+}
+function label(g,x,y,txt,col,size,weight){
+  const t=svgEl('text');
+  attrs(t,{x,y,'text-anchor':'middle','font-size':size||12,fill:col||'var(--color-text-secondary)','font-weight':weight||400});
+  t.textContent=txt; g.appendChild(t);
+}
+function arrowH(g,x1,y1,x2,y2,col){
+  const l=svgEl('line');
+  attrs(l,{x1,y1,x2,y2,stroke:col,'stroke-width':1.5,'marker-end':'url(#arr)'});
+  g.appendChild(l);
+}
+function blockFull(g,x,y,w,h,col,rows,title,sub){
+  const r=svgEl('rect');
+  attrs(r,{x,y,width:w,height:h,rx:6,fill:col,opacity:.13,stroke:col,'stroke-width':1.5});
+  g.appendChild(r);
+  const th=svgEl('text');
+  attrs(th,{x:x+w/2,y:y+14,'text-anchor':'middle','font-size':11,fill:col,'font-weight':500});
+  th.textContent=title; g.appendChild(th);
+  const ts=svgEl('text');
+  attrs(ts,{x:x+w/2,y:y+24,'text-anchor':'middle','font-size':9,fill:col,opacity:.8});
+  ts.textContent=sub; g.appendChild(ts);
+  const rowH=(h-36)/rows.length;
+  rows.forEach((row,i)=>{
+    const ry=y+34+i*rowH;
+    const rb=svgEl('rect');
+    attrs(rb,{x:x+5,y:ry,width:w-10,height:rowH-3,rx:3,fill:col,opacity:.22});
+    g.appendChild(rb);
+    const rt=svgEl('text');
+    attrs(rt,{x:x+w/2,y:ry+rowH/2-1,'text-anchor':'middle','dominant-baseline':'central','font-size':9,fill:col,'font-weight':400});
+    rt.textContent=row; g.appendChild(rt);
+  });
+}
+function cube(g,x,y,s,d,col){
+  // simple isometric cube
+  const front=svgEl('rect');
+  attrs(front,{x,y,width:s,height:s,rx:2,fill:col,opacity:.2,stroke:col,'stroke-width':.8});
+  g.appendChild(front);
+  const top=svgEl('polygon');
+  const pts=`${x},${y} ${x+d},${y-d} ${x+s+d},${y-d} ${x+s},${y}`;
+  attrs(top,{points:pts,fill:col,opacity:.35,stroke:col,'stroke-width':.5});
+  g.appendChild(top);
+  const side=svgEl('polygon');
+  const sp=`${x+s},${y} ${x+s+d},${y-d} ${x+s+d},${y+s-d} ${x+s},${y+s}`;
+  attrs(side,{points:sp,fill:col,opacity:.25,stroke:col,'stroke-width':.5});
+  g.appendChild(side);
+}
+function fcBlock(g,x,y,w,h,col,title,sub,rows){
+  const r=svgEl('rect');
+  attrs(r,{x,y,width:w,height:h,rx:6,fill:col,opacity:.12,stroke:col,'stroke-width':1.5});
+  g.appendChild(r);
+}
+
+function render(idx){
+  const hl=document.getElementById('hl');
+  hl.innerHTML='';
+  hl.setAttribute('class','slidein');
+  void hl.offsetWidth;
+  stages[idx].draw(hl);
+  document.getElementById('stage-label').textContent=stages[idx].label;
+  document.getElementById('info-card').innerHTML=stages[idx].info;
+  document.getElementById('btn-prev').disabled=idx===0;
+  document.getElementById('btn-next').disabled=idx===stages.length-1;
+  document.getElementById('step-counter').textContent=`${idx+1} / ${stages.length}`;
+  document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+}
+
+function nav(dir){
+  cur=Math.max(0,Math.min(stages.length-1,cur+dir));
+  render(cur);
+}
+
+function togglePlay(){
+  playing=!playing;
+  document.getElementById('btn-play').textContent=playing?'⏸ Pause':'▶ Auto-play';
+  if(playing){
+    timer=setInterval(()=>{
+      if(cur<stages.length-1){cur++;render(cur);}
+      else{playing=false;clearInterval(timer);document.getElementById('btn-play').textContent='▶ Auto-play';}
+    },2400);
+  } else { clearInterval(timer); }
+}
+
+// build dots
+const dotsEl=document.getElementById('dots');
+stages.forEach((_,i)=>{
+  const d=document.createElement('div');
+  d.className='dot'; d.title=`Stage ${i+1}`;
+  d.onclick=()=>{cur=i;render(cur);};
+  dotsEl.appendChild(d);
+});
+
+render(0);
+</script>
