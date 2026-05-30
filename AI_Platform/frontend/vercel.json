@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/api/v1/:path*",
-      "destination": "https://your-backend-production-url.com/api/v1/:path*"
+      "destination": "https://rishi563-plantscope.hf.space/api/v1/:path*"
     },
     {
       "source": "/(.*)",
