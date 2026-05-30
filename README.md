@@ -1,5 +1,7 @@
 # 🌱 PlantScope: AI-Powered Plant Disease Detection
 
+**🌍 Live Demo:** [https://plant-scope.vercel.app/](https://plant-scope.vercel.app/)
+
 PlantScope is a high-performance, production-ready AI platform designed to help farmers and agronomists instantly diagnose plant diseases. Built with a modern **FastAPI** backend and a premium **React** frontend, it leverages a **Convolutional Neural Network (CNN)** trained in PyTorch to classify leaf images into 39 different categories with extreme precision.
 
 ---
